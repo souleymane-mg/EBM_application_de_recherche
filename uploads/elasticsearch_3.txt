@@ -1,0 +1,52 @@
+#Download the .zip archive for Elasticsearch 8.17.2 from: https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.17.2-windows-x86_64.zip
+
+#Unzip it with your favorite unzip tool. This will create a folder called elasticsearch-8.17.2
+
+#which we will refer to as %ES_HOME%. In a terminal window, cd to the %ES_HOME% directory, for instance:
+
+
+#Run the following command to start Elasticsearch from the command line:
+
+
+ES_HOME : /toto/elasticsearch-8.17.2
+
+#ouvrez votre terminal powerhsel ou cmd
+taper =>   cd %ES_HOME%
+taper =>  .\bin\elasticsearch.bat
+ 
+#creer la variable ELASTIC_PASSWORD 
+
+curl --cacert %ES_HOME%\config\certs\http_ca.crt -u elastic:%ELASTIC_PASSWORD% https://localhost:9200 -k
+
+Configuration postman :
+Pour configurer avec postmane merci de copier la requete curl et faire un import dans postman.
+Une fois limport finalisé, allez y dans longlet authorization et remplacer le contenu du champs password par le mot vrai mot de passe elastic.
+Enregistrez tapez sur send. Dans certains cas postman va vous dire que la verification ssl est activé. Merci de cliquer sur le texte en rouge "Disable ssl verification"
+
+####################### Installation KIBANA
+
+Download the .zip windows archive for Kibana v8.17.2 from https://artifacts.elastic.co/downloads/kibana/kibana-8.17.2-windows-x86_64.zip
+
+1) dezipper le fichier
+2)créer une variable d'environnement KIBANA_HOME qui contiendra le chemin complet du dossier deziper
+3) créer la clé d'enronllement kibana tapez =>
+cd %ES_HOME%
+.\bin\elasticsearch-create-enrollment-token -s kibana --url "https://localhost:9200"
+4) copier la clé denronllement
+5) cd %KIBANA_HOME%
+5) demarrer kibana => .\bin\kibana.bat
+6) Une fois kibana demarré tapez dans votre navigateur http:localhost:5601
+7) coller la clé d'enronllement et suivez le reste des etapes
+8) connectez vous avec le même compte elastic configurer sur postman
+
+
+
+
+
+
+
+
+
+
+
+

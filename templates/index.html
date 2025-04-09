@@ -143,6 +143,9 @@
                                     <a href="/edit/{{ document.doc_id }}" class="btn btn-sm btn-secondary">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    <button onclick="deleteDocument('{{ document.doc_id }}')" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -154,6 +157,22 @@
     </div>
 
     <script>
+        // Ajouter la fonction de suppression
+        function deleteDocument(doc_id) {
+            if (confirm("Voulez-vous vraiment supprimer ce document ?")) {
+                fetch(`/delete_document/${doc_id}`, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        location.reload(); // Rafraîchir la page après suppression
+                    })
+                    .catch(error => {
+                        console.error("Erreur de suppression:", error);
+                        alert("Une erreur s'est produite lors de la suppression");
+                    });
+            }
+        }
+
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -225,6 +244,9 @@
                                                 <a href="/edit/${doc.doc_id}" class="btn btn-sm btn-secondary">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
+                                                <button onclick="deleteDocument('${doc.doc_id}')" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     `;
