@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Documents</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .documents-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-results {
+            margin-top: 1rem;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .btn-group .btn {
+            margin: 0 2px;
+        }
+
+        .alert {
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+
+        .badge {
+            font-size: 0.85em;
+            padding: 0.4em 0.8em;
+        }
+
+        .text-preview {
+            font-size: 0.9em;
+            color: #666;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        strong {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gestion des Documents</h1>
+            <a href="/create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Ajouter un document
+            </a>
+        </header>
+
+        <section class="search-section">
+            <h3>Rechercher un document</h3>
+            <form id="searchForm" class="mb-3">
+                <div class="form-row">
+                    <div class="col-md-6">
+                        <input type="text" id="query" class="form-control" placeholder="Entrez votre recherche...">
+                    </div>
+                    <div class="col-md-4">
+                        <select id="doc_type" class="form-control">
+                            <option value="">Tous les types</option>
+                            <option value="CV">CV</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Rechercher
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <div id="searchMessage" class="alert" style="display: none;"></div>
+            <div id="searchResults" class="search-results"></div>
+        </section>
+
+        <section class="documents-section">
+            <h3>Liste des documents</h3>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Type</th>
+                            <th>Format</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for document in documents %}
+                        <tr>
+                            <td>{{ document.doc_name }}</td>
+                            <td><span class="badge badge-primary">{{ document.doc_type }}</span></td>
+                            <td>{{ document.doc_format }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="/download_document/{{ document.doc_id }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <a href="/edit/{{ document.doc_id }}" class="btn btn-sm btn-secondary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const query = document.getElementById('query').value;
+            const docType = document.getElementById('doc_type').value;
+            const resultsDiv = document.getElementById('searchResults');
+            const messageDiv = document.getElementById('searchMessage');
+            
+            // Réinitialiser l'affichage
+            messageDiv.style.display = 'none';
+            messageDiv.innerHTML = '';
+            messageDiv.className = 'alert';
+            resultsDiv.innerHTML = '';
+            
+            if (!query) {
+                messageDiv.innerHTML = 'Veuillez entrer un terme de recherche';
+                messageDiv.className = 'alert alert-warning';
+                messageDiv.style.display = 'block';
+                return;
+            }
+
+            // Afficher le message de chargement
+            messageDiv.innerHTML = 'Recherche en cours...';
+            messageDiv.className = 'alert alert-info';
+            messageDiv.style.display = 'block';
+
+            fetch(`/search?query=${encodeURIComponent(query)}&doc_type=${encodeURIComponent(docType)}`)
+                .then(async response => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.message || `Erreur HTTP: ${response.status}`);
+                    }
+                    return data;
+                })
+                .then(data => {
+                    if (data && data.status === 'success') {
+                        if (Array.isArray(data.documents) && data.documents.length > 0) {
+                            messageDiv.innerHTML = `${data.documents.length} document(s) trouvé(s)`;
+                            messageDiv.className = 'alert alert-success';
+                            
+                            const table = document.createElement('table');
+                            table.className = 'table table-hover';
+                            table.innerHTML = `
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Type</th>
+                                        <th>Extrait</th>
+                                        <th>Score</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            `;
+                            
+                            data.documents.forEach(doc => {
+                                if (doc) {
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = `
+                                        <td>${doc.doc_name || 'Sans nom'}</td>
+                                        <td><span class="badge badge-primary">${doc.doc_type || 'Non spécifié'}</span></td>
+                                        <td class="text-preview">${doc.content_preview || 'Pas d\'extrait disponible'}</td>
+                                        <td><small>${doc.score ? doc.score.toFixed(2) : 'N/A'}</small></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="/download_document/${doc.doc_id}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                                <a href="/edit/${doc.doc_id}" class="btn btn-sm btn-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    `;
+                                    table.querySelector('tbody').appendChild(row);
+                                }
+                            });
+                            
+                            resultsDiv.appendChild(table);
+                        } else {
+                            messageDiv.innerHTML = 'Aucun document trouvé';
+                            messageDiv.className = 'alert alert-info';
+                        }
+                    } else {
+                        throw new Error(data.message || 'Une erreur est survenue');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    messageDiv.innerHTML = `Erreur: ${error.message}`;
+                    messageDiv.className = 'alert alert-danger';
+                });
+        });
+    </script>
+</body>
+</html>

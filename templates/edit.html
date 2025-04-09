@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier un Document</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #e0e7ff;
+            --secondary: #3f37c9;
+            --dark: #1e1e24;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --danger: #f72585;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: #f5f7ff;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: var(--box-shadow);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-light);
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* Form styling */
+        .form-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .document-info {
+            background-color: var(--primary-light);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .document-info strong {
+            color: var(--primary);
+        }
+
+        /* File upload styling */
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload-btn {
+            border: 2px dashed #ddd;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .file-upload-btn:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-upload-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Modifier un Document</h1>
+            <a href="/" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+        </header>
+
+        <div class="form-container">
+            <form action="/update_document" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="doc_id" value="{{ document.doc_id }}">
+
+                <div class="document-info">
+                    <p><strong>ID du document :</strong> {{ document.doc_id }}</p>
+                    <p><strong>Actuellement :</strong> {{ document.doc_file_full_path }}</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="doc_name">Nom du document</label>
+                    <input type="text" id="doc_name" name="doc_name" value="{{ document.doc_name }}" required placeholder="Entrez le nom du document">
+                </div>
+
+                <div class="form-group">
+                    <label for="doc_type">Type de document</label>
+                    <select id="doc_type" name="doc_type" required>
+                        <option value="">Sélectionnez un type</option>
+                        <option value="CV" {% if document.doc_type == 'CV' %}selected{% endif %}>CV</option>
+                        <option value="fiche de poste" {% if document.doc_type == 'fiche de poste' %}selected{% endif %}>Fiche de poste</option>
+                        <option value="évaluation annuelle" {% if document.doc_type == 'évaluation annuelle' %}selected{% endif %}>Évaluation annuelle</option>
+                        <option value="contrat" {% if document.doc_type == 'contrat' %}selected{% endif %}>Contrat</option>
+                        <option value="autre" {% if document.doc_type == 'autre' %}selected{% endif %}>Autre</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="doc_format">Format du document</label>
+                    <select id="doc_format" name="doc_format" required>
+                        <option value="">Sélectionnez un format</option>
+                        <option value="PDF" {% if document.doc_format == 'PDF' %}selected{% endif %}>PDF</option>
+                        <option value="DOCX" {% if document.doc_format == 'DOCX' %}selected{% endif %}>DOCX (Word)</option>
+                        <option value="XLSX" {% if document.doc_format == 'XLSX' %}selected{% endif %}>XLSX (Excel)</option>
+                        <option value="PPTX" {% if document.doc_format == 'PPTX' %}selected{% endif %}>PPTX (PowerPoint)</option>
+                        <option value="TXT" {% if document.doc_format == 'TXT' %}selected{% endif %}>TXT (Texte)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="doc_file">Mettre à jour le fichier (optionnel)</label>
+                    <div class="file-upload">
+                        <label class="file-upload-btn" for="doc_file">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div>Cliquez pour téléverser un nouveau fichier</div>
+                            <div id="file-name" style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--gray);">
+                                Laissez vide pour conserver le fichier actuel
+                            </div>
+                        </label>
+                        <input type="file" id="doc_file" name="doc_file" onchange="displayFileName(this)">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="doc_file_full_path">Chemin du fichier</label>
+                    <input type="text" id="doc_file_full_path" name="doc_file_full_path" value="{{ document.doc_file_full_path }}" required placeholder="Entrez le chemin du fichier">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="confirmDelete()" class="btn btn-warning">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                    <div>
+                        <button type="reset" class="btn btn-outline">
+                            <i class="fas fa-undo"></i> Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Mettre à jour
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function displayFileName(input) {
+            const fileNameDisplay = document.getElementById('file-name');
+            if (input.files.length > 0) {
+                fileNameDisplay.textContent = "Nouveau fichier : " + input.files[0].name;
+            } else {
+                fileNameDisplay.textContent = "Laissez vide pour conserver le fichier actuel";
+            }
+        }
+
+        function confirmDelete() {
+            if (confirm("Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible.")) {
+                window.location.href = `/delete_document/{{ document.doc_id }}`;
+            }
+        }
+    </script>
+</body>
+</html>

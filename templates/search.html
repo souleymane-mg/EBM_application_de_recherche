@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherche de Documents</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .search-results {
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem;
+        }
+        
+        .alert {
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .btn-group {
+            white-space: nowrap;
+        }
+        
+        .btn-group .btn {
+            margin: 0 2px;
+        }
+        
+        .text-muted {
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        
+        strong {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        .form-row {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .result-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .result-item:hover {
+            background-color: #f8f9fa;
+        }
+        .score {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <nav class="mb-4">
+            <a href="/" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Retour à l'accueil
+            </a>
+        </nav>
+
+        <h2>Recherche de Documents</h2>
+        
+        <form id="searchForm" class="mb-4">
+            <div class="form-row">
+                <div class="col-md-6">
+                    <input type="text" id="query" class="form-control" placeholder="Entrez votre recherche..." required>
+                </div>
+                <div class="col-md-4">
+                    <select id="doc_type" class="form-control">
+                        <option value="">Tous les types</option>
+                        <option value="CV">CV</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Rechercher
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div id="message" class="alert"></div>
+        <div id="results" class="search-results"></div>
+    </div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const query = document.getElementById('query').value;
+            const docType = document.getElementById('doc_type').value;
+            const resultsDiv = document.getElementById('results');
+            const messageDiv = document.getElementById('message');
+            
+            // Effacer les résultats précédents
+            resultsDiv.innerHTML = '';
+            messageDiv.innerHTML = '';
+            messageDiv.className = '';
+            
+            // Afficher un message de chargement
+            messageDiv.innerHTML = 'Recherche en cours...';
+            messageDiv.className = 'alert alert-info';
+
+            fetch(`/search?query=${encodeURIComponent(query)}&doc_type=${encodeURIComponent(docType)}`)
+                .then(async response => {
+                    const data = await response.json();
+                    console.log('Données brutes reçues:', data);  // Debug log
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                    }
+                    return data;
+                })
+                .then(data => {
+                    console.log('Réponse traitée:', data);  // Debug log
+                    
+                    // Toujours effacer les anciens messages et résultats
+                    messageDiv.innerHTML = '';
+                    messageDiv.className = '';
+                    resultsDiv.innerHTML = '';
+                    
+                    if (data && data.status === 'success') {
+                        if (Array.isArray(data.documents) && data.documents.length > 0) {
+                            // Afficher le message de succès
+                            messageDiv.innerHTML = `${data.documents.length} document(s) trouvé(s)`;
+                            messageDiv.className = 'alert alert-success';
+                            
+                            // Créer le tableau des résultats
+                            const table = document.createElement('table');
+                            table.className = 'table table-striped';
+                            table.innerHTML = `
+                                <thead>
+                                    <tr>
+                                        <th>Nom du document</th>
+                                        <th>Type</th>
+                                        <th>Extrait</th>
+                                        <th>Score</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            `;
+                            
+                            const tbody = table.querySelector('tbody');
+                            data.documents.forEach(doc => {
+                                if (doc) {  // Vérifier que le document existe
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = `
+                                        <td>${doc.doc_name || 'Sans nom'}</td>
+                                        <td>${doc.doc_type || 'Non spécifié'}</td>
+                                        <td>
+                                            <small class="text-muted">
+                                                ${doc.content_preview ? doc.content_preview : 'Pas d\'extrait disponible'}
+                                            </small>
+                                        </td>
+                                        <td>${doc.score ? doc.score.toFixed(2) : 'N/A'}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                ${doc.doc_id ? `
+                                                    <a href="/download_document/${doc.doc_id}" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                    <a href="/edit/${doc.doc_id}" class="btn btn-sm btn-secondary">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                ` : 'Actions non disponibles'}
+                                            </div>
+                                        </td>
+                                    `;
+                                    tbody.appendChild(row);
+                                }
+                            });
+                            
+                            resultsDiv.appendChild(table);
+                        } else {
+                            // Aucun document trouvé
+                            messageDiv.innerHTML = 'Aucun document trouvé';
+                            messageDiv.className = 'alert alert-info';
+                        }
+                    } else {
+                        // Erreur avec message spécifique
+                        console.error('Erreur de l\'API:', data);
+                        messageDiv.innerHTML = data.message || 'Une erreur est survenue';
+                        messageDiv.className = 'alert alert-danger';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    messageDiv.innerHTML = `Une erreur est survenue lors de la recherche: ${error.message}`;
+                    messageDiv.className = 'alert alert-danger';
+                    resultsDiv.innerHTML = '';
+                });
+        });
+    </script>
+</body>
+</html> 
